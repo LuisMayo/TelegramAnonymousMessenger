@@ -1,12 +1,13 @@
 import { Conf } from "./conf";
 import * as fs from 'fs';
 import * as Telegraf from 'telegraf';
+import { Room } from "./room";
 
 const version = '1.0.1';
 const confPath = process.argv[2] || './conf';
 const conf: Conf = JSON.parse(fs.readFileSync(confPath + '/conf.json', { encoding: 'UTF-8' }));
 const bot = new Telegraf.default(conf.token);
-const stateMap = new Map<number, GameInfo>();
+const roomMap = new Map<number, Room>();
 
 bot.start(ctx => {
     ctx.reply(conf.messages.start, { parse_mode: "Markdown" });
@@ -22,4 +23,8 @@ bot.command('admin', ctx => {
 ${text.trim()}`, { parse_mode: "Markdown" });
         ctx.reply('Message to the admin has been sent');
     }
+});
+
+bot.command('create', ctx => {
+    
 });
