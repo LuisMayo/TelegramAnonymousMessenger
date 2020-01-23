@@ -1,6 +1,9 @@
-import { User } from "telegraf/typings/telegram-types";
+import { Chat } from "telegraf/typings/telegram-types";
 
 export class Room {
-    id: string;
-    users: User[];
+    chats: Chat[];
+
+    constructor (public id: string) {
+        this.chats = [];
+    }
 }
