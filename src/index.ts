@@ -71,21 +71,25 @@ bot.command('leave', ctx => {
     }
 });
 
-// bot.on('text', ctx => {
-//     reSendToChat(ctx, (chat) => bot.telegram.sendMessage(chat.id, ctx.message.text));
-// });
+bot.on('text', ctx => {
+    reSendToChat(ctx, (chat) => bot.telegram.sendMessage(chat.id, ctx.message.text));
+});
 
-// bot.on('photo', ctx => {
-//     const photo = getBestPhoto(ctx.message);
-//     reSendToChat(ctx, (chat) => bot.telegram.sendPhoto(chat.id, photo.file_id, {caption: ctx.message.caption}));
-// });
+bot.on('photo', ctx => {
+   const photo = getBestPhoto(ctx.message);
+   reSendToChat(ctx, (chat) => bot.telegram.sendPhoto(chat.id, photo.file_id, {caption: ctx.message.caption}));
+});
 
-// bot.on('video', ctx => {
-//     reSendToChat(ctx, (chat) => bot.telegram.sendVideo(chat.id, ctx.message.video.file_id, {caption: ctx.message.caption}));
-// });
+bot.on('video', ctx => {
+   reSendToChat(ctx, (chat) => bot.telegram.sendVideo(chat.id, ctx.message.video.file_id, {caption: ctx.message.caption}));
+});
 
 bot.use(ctx => {
+    try {
     reSendToChat(ctx, (chat) => bot.telegram.sendCopy(chat.id, ctx.message));
+    } catch (e) {
+
+    }
 });
 
 bot.launch();
