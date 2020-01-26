@@ -2,7 +2,7 @@ import { Conf } from "./conf";
 import * as fs from 'fs';
 import * as Telegraf from 'telegraf';
 import { Room } from "./room";
-import { User } from "telegraf/typings/telegram-types";
+import { User, Message, PhotoSize, Chat } from "telegraf/typings/telegram-types";
 import { brotliCompress } from "zlib";
 
 const version = '1.0.1';
@@ -71,19 +71,46 @@ bot.command('leave', ctx => {
     }
 });
 
+// bot.on('text', ctx => {
+//     reSendToChat(ctx, (chat) => bot.telegram.sendMessage(chat.id, ctx.message.text));
+// });
+
+// bot.on('photo', ctx => {
+//     const photo = getBestPhoto(ctx.message);
+//     reSendToChat(ctx, (chat) => bot.telegram.sendPhoto(chat.id, photo.file_id, {caption: ctx.message.caption}));
+// });
+
+// bot.on('video', ctx => {
+//     reSendToChat(ctx, (chat) => bot.telegram.sendVideo(chat.id, ctx.message.video.file_id, {caption: ctx.message.caption}));
+// });
+
 bot.use(ctx => {
+    reSendToChat(ctx, (chat) => bot.telegram.sendCopy(chat.id, ctx.message));
+});
+
+bot.launch();
+
+function reSendToChat(ctx: Telegraf.ContextMessageUpdate, fn: (chat: Chat) => Promise<Message>) {
     if (roomMapByChat.has(ctx.chat.id)) {
         const room = roomMapByChat.get(ctx.chat.id);
         for (const chat of room.chats) {
             if (chat.id !== ctx.chat.id) {
-                bot.telegram.forwardMessage(chat.id, ctx.chat.id, ctx.message.message_id);
+                fn(chat);
             }
         }
     }
-})
+}
 
-bot.launch();
 function makeUserLink(usr: User) {
     return `[${usr.first_name}](tg://user?id=${usr.id})`
 }
 
+function getBestPhoto(ctx: Message) {
+    let bestPhoto: PhotoSize;
+    for (const photo of ctx.photo) {
+        if (!bestPhoto || bestPhoto.file_size < photo.file_size) {
+            bestPhoto = photo;
+        }
+    }
+    return bestPhoto;
+}
