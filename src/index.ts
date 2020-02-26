@@ -46,7 +46,6 @@ bot.command(['create', 'join'], ctx => {
         const roomID = ctx.message.text.split(' ')[1];
         if (roomID) {
             joinOrCreateRoom(roomID, ctx);
-            ctx.reply('Session joined with success');
         } else {
             ctx.reply('Do you want to join/create a room? or talk to a random stranger?', {reply_markup: firstQuestionKeyboard});
         }
@@ -67,7 +66,7 @@ bot.command('leave', ctx => {
             roomMapByRoom.delete(room.id);
         }
         roomMapByChat.delete(ctx.chat.id);
-        ctx.reply('Session leaved');
+        ctx.reply('You have succesfully left the chat');
     } else {
         ctx.reply("You're not on a room");
     }
