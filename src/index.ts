@@ -2,7 +2,7 @@ import { Conf } from "./conf";
 import * as fs from 'fs';
 import * as Telegraf from 'telegraf';
 import { Room } from "./room";
-import { User, Message, PhotoSize, Chat } from "telegraf/typings/telegram-types";
+import { User, Message, PhotoSize, Chat, ReplyKeyboardMarkup } from "telegraf/typings/telegram-types";
 import { brotliCompress } from "zlib";
 
 const version = '1.0.1';
@@ -11,9 +11,11 @@ const conf: Conf = JSON.parse(fs.readFileSync(confPath + '/conf.json', { encodin
 const bot = new Telegraf.default(conf.token);
 const roomMapByChat = new Map<number, Room>();
 const roomMapByRoom = new Map<string, Room>();
+let firstQuestionKeyboard: ReplyKeyboardMarkup;
+let lastRandom: string;
 
 bot.start(ctx => {
-    ctx.reply(conf.messages.start, { parse_mode: "Markdown" });
+    ctx.reply(conf.messages.start +'\nDo you want to join/create a room? or talk to a random stranger?', { parse_mode: "Markdown", reply_markup: firstQuestionKeyboard });
     ctx.from
 });
 
@@ -42,16 +44,12 @@ bot.command('send', (ctx) => {
 bot.command(['create', 'join'], ctx => {
     if (!roomMapByChat.has(ctx.chat.id)) {
         const roomID = ctx.message.text.split(' ')[1];
-        let room: Room;
-        if (roomMapByRoom.has(roomID)) {
-            room = roomMapByRoom.get(roomID);
+        if (roomID) {
+            joinOrCreateRoom(roomID, ctx);
+            ctx.reply('Session joined with success');
         } else {
-            room = new Room(roomID);
-            roomMapByRoom.set(roomID, room);
+            ctx.reply('Do you want to join/create a room? or talk to a random stranger?', {reply_markup: firstQuestionKeyboard});
         }
-        room.chats.push(ctx.chat);
-        roomMapByChat.set(ctx.chat.id, room);
-        ctx.reply('Session joined with success');
     } else {
         ctx.reply('You are already in a session, You may /leave it');
     }
@@ -75,8 +73,26 @@ bot.command('leave', ctx => {
     }
 });
 
+bot.hears('Create/Join', ctx => {
+    ctx.reply('Ok, just type the room name at any moment if you don\'t have any room');
+});
+
+bot.hears('Random', ctx => {
+    if (lastRandom) {
+        joinOrCreateRoom(lastRandom, ctx);
+        lastRandom = null;
+    } else {
+        lastRandom = Math.random().toFixed(20);
+        joinOrCreateRoom(lastRandom, ctx);
+    }
+});
+
 bot.on('text', ctx => {
-    reSendToChat(ctx, (chat) => bot.telegram.sendMessage(chat.id, ctx.message.text));
+    if (roomMapByChat.has(ctx.chat.id)) {
+        reSendToChat(ctx, (chat) => bot.telegram.sendMessage(chat.id, ctx.message.text));
+    } else {
+        joinOrCreateRoom(ctx.message.text, ctx);
+    }
 });
 
 bot.on('photo', ctx => {
@@ -95,8 +111,26 @@ bot.use(ctx => {
 
     }
 });
-
+firstQuestionKeyboard = Telegraf.Markup.keyboard([
+    Telegraf.Markup.button("Create/Join"),
+    Telegraf.Markup.button("Random")
+], {one_time_keyboard: true});
 bot.launch();
+
+
+function joinOrCreateRoom(roomID: string, ctx: Telegraf.ContextMessageUpdate) {
+    let room: Room;
+    if (roomMapByRoom.has(roomID)) {
+        room = roomMapByRoom.get(roomID);
+    }
+    else {
+        room = new Room(roomID);
+        roomMapByRoom.set(roomID, room);
+    }
+    room.chats.push(ctx.chat);
+    roomMapByChat.set(ctx.chat.id, room);
+    ctx.reply("You've succesfully joined the room");
+}
 
 function reSendToChat(ctx: Telegraf.ContextMessageUpdate, fn: (chat: Chat) => Promise<Message>) {
     if (roomMapByChat.has(ctx.chat.id)) {
