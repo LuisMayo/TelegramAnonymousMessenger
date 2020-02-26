@@ -57,6 +57,10 @@ bot.command(['create', 'join'], ctx => {
     }
 });
 
+bot.command('version', ctx => {
+    ctx.reply(version);
+});
+
 bot.command('leave', ctx => {
     if (roomMapByChat.has(ctx.chat.id)) {
         const room = roomMapByChat.get(ctx.chat.id);
