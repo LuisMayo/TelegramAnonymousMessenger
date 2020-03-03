@@ -74,7 +74,11 @@ bot.command('leave', ctx => {
 });
 
 bot.hears('Create/Join', ctx => {
-    ctx.reply('Ok, just type the room name at any moment if you don\'t have any room');
+    if (!roomMapByChat.has(ctx.chat.id)) {
+        ctx.reply('Ok, just type the room name at any moment if you don\'t have any room');
+    } else {
+        reSendToChat(ctx, resendText(ctx));
+    }
 });
 
 bot.hears('Random', ctx => {
@@ -93,7 +97,7 @@ bot.hears('Random', ctx => {
 
 bot.on('text', ctx => {
     if (roomMapByChat.has(ctx.chat.id)) {
-        reSendToChat(ctx, (chat) => bot.telegram.sendMessage(chat.id, ctx.message.text));
+        reSendToChat(ctx, resendText(ctx));
     } else {
         joinOrCreateRoom(ctx.message.text, ctx);
     }
@@ -121,6 +125,10 @@ firstQuestionKeyboard = Telegraf.Markup.keyboard([
 ], {one_time_keyboard: true});
 bot.launch();
 
+
+function resendText(ctx: Telegraf.ContextMessageUpdate): (chat: Chat) => Promise<Message> {
+    return (chat) => bot.telegram.sendMessage(chat.id, ctx.message.text);
+}
 
 function joinOrCreateRoom(roomID: string, ctx: Telegraf.ContextMessageUpdate) {
     let room: Room;
