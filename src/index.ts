@@ -78,12 +78,16 @@ bot.hears('Create/Join', ctx => {
 });
 
 bot.hears('Random', ctx => {
-    if (lastRandom) {
-        joinOrCreateRoom(lastRandom, ctx);
-        lastRandom = null;
+    if (!roomMapByChat.has(ctx.chat.id)) {
+        if (lastRandom) {
+            joinOrCreateRoom(lastRandom, ctx);
+            lastRandom = null;
+        } else {
+            lastRandom = Math.random().toFixed(20);
+            joinOrCreateRoom(lastRandom, ctx);
+        }
     } else {
-        lastRandom = Math.random().toFixed(20);
-        joinOrCreateRoom(lastRandom, ctx);
+        ctx.reply('You are already in a session, You may /leave it');
     }
 });
 
