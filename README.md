@@ -1,7 +1,8 @@
 # TelegramAnonymousMessenger
 Telegram bot to chat anonymously.
 Enter a room using /join roomName
-You can check it at [@l3anonbot](https://t.me/l3anonbot)
+You can check it at [@l3anonbot](https://t.me/l3anonbot).
+This project is not complete and it doesn't work that well, I sinceresly recommend you to explore some alternatives like [@Chat_bot](https://t.me/Chat_bot)
 
 ## Getting Started
 
